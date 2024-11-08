@@ -1,0 +1,687 @@
+                             1. Git
+
+git config --global user.name "username of git"
+git config -global user.email "email of Git",
+git init
+git status
+git add 1.py
+git add 2.java
+git status
+git commit -m "Commited"
+git remote add origin "link of repo"
+git push -u origin master
+
+
+
+                 3. Modules ( OS, HTTP, File System)
+
+
+HTTP MODULE
+
+api.js
+
+const http = require('http');
+const url = require('url');
+const port = 8000;
+
+const server = http.createServer(function (req, res) {
+    res.writeHead(200, { 'Content-Type': 'text/html' });
+
+    const q = url.parse(req.url, true).query;
+    console.log("Parsed Query:", q);
+
+    const text = q.query + " " + q.month;
+    res.end(text);
+});
+
+server.listen(port, () => {
+    console.log(`Server is listening on port ${port}`);
+});
+
+
+
+OS MODULE
+
+api.js
+const os = require('os');
+
+console.log("Platform: " + os.platform());
+console.log("Architecture: " + os.arch());
+console.log("Free memory: " + os.freemem()); `
+console.log("Total Memory: " + os.totalmem()); 
+console.log("User Info: ", os.userInfo());
+console.log("Network Interfaces: ", os.networkInterfaces());
+
+
+
+FILE SYSTEM MODULE
+
+const http = require('http');
+const fs = require('fs');
+
+const port = 8070; // Define the port variable
+
+const server = http.createServer(function (req, res) {
+    res.setHeader("Content-Type", "text/html");
+    fs.readFile("demo.html", function (err, data) {
+        if (err) {
+            res.writeHead(404);
+            res.write("404 Not Found");
+        } else {
+            res.write(data);
+        }
+        res.end();
+    });
+});
+
+server.listen(port, function () { // Fix the arrow function syntax
+    console.log("Server is listening on port: " + port);
+});
+
+
+demo.html
+<!DOCTYPE html>
+<html>
+<body>
+    <h1>Hello, World!</h1>
+    <p>This is demo.html</p>
+</body>
+</html>
+
+
+
+                    4. CRUD operations - RestAPI
+
+
+
+const http = require('http');
+const fs = require('fs');
+const url = require('url');
+const port = 8000;
+
+// Load the initial student data from the JSON file
+let stu = require('./student.json'); // Note: Use the correct file name here
+
+// Create the server
+const server = http.createServer(function(req, res) {
+    res.setHeader("Content-Type", "text/html");
+
+    // Endpoint 1: Home route
+    if (req.method == "GET" && req.url == "/") {
+        res.write("<h1>Welcome to my REST API SERVER</h1>");
+\]    }
+
+    // Endpoint 2: List all students
+    else if (req.method == "GET" && req.url == "/list") {
+        fs.readFile("student.json", function(err, data) {
+            if (err) {
+                res.writeHead(500);
+                res.write("Error reading file");
+            } else {
+                res.write(data);
+            }
+            res.end();
+        });
+    }
+
+    // Endpoint 3: Add a new student (using POST)
+    else if (req.method == "POST") {
+        const newStu = url.parse(req.url, true).query;
+        stu.push(newStu); // Add the new student data to the array
+        myWrite(stu);      // Save the updated array to the JSON file
+        res.write("<h1>Student Record inserted</h1>");
+        res.end();
+    }
+
+    // Endpoint 4: Update an existing student (using PUT)
+    else if (req.method == "PUT") {
+        const upStu = url.parse(req.url, true).query;
+        for (let s in stu) {
+            if (stu[s]['roll'] == upStu['roll']) {
+                // Update fields
+                stu[s]['name'] = upStu['name'];
+                stu[s]['year'] = upStu['year'];
+                stu[s]['branch'] = upStu['branch'];
+                stu[s]['cgpa'] = upStu['cgpa'];
+                myWrite(stu); // Save the updated array to the JSON file
+                res.write("Updated Successfully");
+            }
+        }
+        res.end();
+    }
+
+    // Endpoint 5: Delete a student (using DELETE)
+    else if (req.method == "DELETE") {
+        const delStu = url.parse(req.url, true).query;
+        for (let s in stu) {
+            if (stu[s]['roll'] == delStu['roll']) {
+                stu.splice(s, 1); // Remove the student from the array
+                myWrite(stu);      // Save the updated array to the JSON file
+                res.write("Deleted Successfully");
+            }
+        }
+        res.end();
+    }
+});
+
+// Helper function to save changes to the JSON file
+function myWrite(data) {
+    fs.writeFile("student.json", JSON.stringify(data), function(err) {
+        if (err) console.log("Error writing to file", err);
+    });
+}
+
+// Start the server
+server.listen(port, function() {
+    console.log("Server Started...");
+    console.log("Server is listening on: " + port);
+});
+
+
+
+
+
+                 5. Express Web Application - CRUD
+
+
+const exp = require('express');
+const app = exp();
+const fs = require('fs');
+const bp = require('body-parser');
+const port = 9000;
+
+app.use(bp.urlencoded({ extended: true }));
+app.use(bp.json());
+
+app.get("/", function(req, res) {
+    res.send("<h1>Welcome to Express REST API Server</h1>");
+});
+
+app.get("/list", function(req, res) {
+    fs.readFile("students.json", function(err, data) {
+        if (err) {
+            console.error("Error reading the file", err);
+            res.status(500).send("Error reading the file");
+            return;
+        }
+        res.send(data); // Use res.send instead of res.write and res.end
+    });
+});
+
+app.post("/", function(req, res) {
+    fs.readFile("students.json", function(err, data) {
+        if (err) {
+            console.error("Error reading the file", err);
+            res.status(500).send("Error reading the file");
+            return;
+        }
+        let stu = JSON.parse(data);
+        let newStu = req.body; // Corrected reference to req.body
+        stu.push(newStu);
+        mywrite(stu, res, "Inserted successfully");
+    });
+});
+
+app.put("/", function(req, res) {
+    fs.readFile("students.json", function(err, data) {
+        if (err) {
+            console.error("Error reading the file", err);
+            res.status(500).send("Error reading the file");
+            return;
+        }
+        let stu = JSON.parse(data);
+        let upStu = req.body;
+        let updated = false;
+        for (let s in stu) {
+            if (stu[s]['roll'] === upStu['roll']) {
+                stu[s]['name'] = upStu['name'];  
+                updated = true;
+                break;
+            }
+        }
+        if (updated) {
+            mywrite(stu, res, "Updated successfully");
+        } else {
+            res.status(404).send("Student not found");
+        }
+    });
+});
+
+app.delete("/", function(req, res) {
+    fs.readFile("students.json", function(err, data) {
+        if (err) {
+            console.error("Error reading the file", err);
+            res.status(500).send("Error reading the file");
+            return;
+        }
+        let stu = JSON.parse(data);
+        let delStu = req.body;
+        let index = stu.findIndex(s => s['roll'] === delStu['roll']);
+        if (index !== -1) {
+            stu.splice(index, 1);
+            mywrite(stu, res, "Deleted successfully");
+        } else {
+            res.status(404).send("Student not found");
+        }
+    });
+});
+
+function mywrite(data, res, successMessage) {
+    fs.writeFile("students.json", JSON.stringify(data), function(err) {
+        if (err) {
+            console.error("Error writing the file", err);
+            res.status(500).send("Error writing the file");
+            return;
+        }
+        res.send(successMessage);
+    });
+}
+
+app.listen(port, function() {
+    console.log("Server started at port", port);
+});
+
+
+
+
+         8. React Application - Render Date and Current time
+
+
+Timer.js
+
+import React from 'react';
+
+function Timer() {
+  const ob = new Date();
+  const d = ob.toDateString();
+  const t = ob.toTimeString();
+
+  return (
+    <>
+      <h1>Current Date: {d}</h1>
+      <h1>Current Time: {t}</h1>
+    </>
+  );
+}
+
+export default Timer;
+
+
+index.js
+
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import Timer from './Timer';
+import reportWebVitals from './reportWebVitals';
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+
+root.render(
+  <React.StrictMode>
+    <Timer />
+  </React.StrictMode>
+);
+
+reportWebVitals();
+
+
+ 
+                  9-(a). Functional Component:
+
+
+// Fcc.js
+function Fcc(props) {
+  return (
+    <div>
+      <p>{props.data}</p>
+    </div>
+  );
+}
+
+export default Fcc;
+
+import React from 'react';
+import Fcc from './Fcc';
+import reportWebVitals from './reportWebVitals';
+import ReactDom from 'react-dom/client';
+varname="  DS _B"
+const root = ReactDOM.createRoot(document.getElementBy('root'))
+
+root.render(
+<React.strictMode>
+<Fcc data : {name} />
+</React.strictMode>
+)
+
+                     9-(b). Class Component:
+
+// Fcc.js
+import React, { Component } from 'react';
+
+class Fcc extends Component {
+  render() {
+    return (
+      <div>
+        <p>{this.props.data}</p>
+      </div>
+    );
+  }
+}
+
+export default Fcc;
+
+
+// index.js
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import Fcc from './Fcc';
+import reportWebVitals from './reportWebVitals';
+
+const name = "DS _B";
+const root = ReactDOM.createRoot(document.getElementById('root'));
+
+root.render(
+  <React.StrictMode>
+    <Fcc data={name} />
+  </React.StrictMode>
+);
+
+reportWebVitals();
+
+
+
+                          10. Display Date
+
+
+//DateDisplay.js
+import React, { Component } from 'react';
+
+class DateDisplay extends Component {
+  render() {
+    return (
+      <div>
+        <h1>Date Display</h1>
+        <li>Current Date: {this.props.d}</li>
+      </div>
+    );
+  }
+}
+
+export default DateDisplay;
+
+
+//index.js
+
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import DateDisplay from './DateDisplay';
+import reportWebVitals from './reportWebVitals';
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+const date = "2024-11-04";
+
+root.render(
+  <React.StrictMode>
+    <DateDisplay d={date} />
+  </React.StrictMode>
+);
+
+reportWebVitals();
+   
+
+
+                  11. React Component Lifecycle
+
+
+//counter.js
+
+import React, { Component } from 'react';
+
+class Counter extends Component {
+  state = { count: 0 };
+
+  componentDidMount() {
+    console.log('Counter mounted');
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    if (prevState.count !== this.state.count) {
+      console.log('Counter updated');
+    }
+  }
+
+  componentWillUnmount() {
+    console.log('Counter unmounted');
+  }
+
+  increment = () => this.setState({ count: this.state.count + 1 });
+  reset = () => this.setState({ count: 0 });
+
+  render() {
+    return (
+      <div>
+        <h2>Counter: {this.state.count}</h2>
+        <button onClick={this.increment}>Increment</button>
+        <button onClick={this.reset}>Reset</button>
+      </div>
+    );
+  }
+}
+
+export default Counter;
+
+app.js
+
+import React, { Component } from 'react';
+import Counter from './Counter';
+
+class App extends Component {
+  state = { showCounter: true };
+
+  toggleCounter = () => this.setState(prevState => ({ showCounter: !prevState.showCounter }));
+
+  render() {
+    return (
+      <div>
+        <h1>React Component Lifecycle Demo</h1>
+        <button onClick={this.toggleCounter}>
+          {this.state.showCounter ? 'Hide Counter' : 'Show Counter'}
+        </button>
+        {this.state.showCounter && <Counter />}
+      </div>
+    );
+  }
+}
+
+export default App;
+
+
+index.js
+
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App';
+import reportWebVitals from './reportWebVitals';
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);
+
+reportWebVitals();
+
+
+
+                    12. Event Management- Goodbye
+
+  
+
+import React from 'react';
+
+function App() {
+  function handleDateClick() {
+    const currentDate = new Date().toLocaleString();
+    alert(Current Date and Time: ${currentDate});
+  }
+  const handleGoodbyeClick = () => {
+    alert('Good Bye');
+  };
+
+  return (
+    <div style={ { textAlign: 'center', marginTop: '50px' } } >
+      <h1> React Button Click Events </h1>
+      <button onClick={handleDateClick}>  Show Date and Time </button>
+      <br /><br /> 
+      <button onClick={handleGoodbyeClick}>  Say Goodbye </button>
+    </div>
+  );
+}
+export default App;
+
+                     14.Registration page
+
+
+import React, { useState } from 'react';
+
+const App = () => {
+    const [studentName, setStudentName] = useState('');
+    const [branch, setBranch] = useState('');
+    const [year, setYear] = useState('');
+    const [cgpa, setCgpa] = useState('');
+
+    const handleSubmit = (event) => {
+        event.preventDefault();
+        
+        alert(`Details submitted successfully:\n
+            Name: ${studentName}\n
+            Branch: ${branch}\n
+            Year: ${year}\n
+            CGPA: ${cgpa}`);
+
+        setStudentName('');
+        setBranch('');
+        setYear('');
+        setCgpa('');
+    };
+
+    return (
+       <div style={{ maxWidth: '400px', margin: 'auto', padding: '20px', border: '2px solid green' }}>
+           <h2>Student Registration Form</h2>
+           <form onSubmit={handleSubmit}>
+              <div>
+                 <label>Student Name:</label> 
+                 <input type="text" value={studentName} onChange={(e) => setStudentName(e.target.value)} required />
+              </div>
+              <div>
+                   <label>Branch:</label>
+                   <input type="text" value={branch} onChange={(e) => setBranch(e.target.value)} required />
+              </div>
+              <div>
+                 <label>Year:</label>
+                 <input type="text" value={year} onChange={(e) => setYear(e.target.value)} required />
+              </div>
+              <div>
+                 <label>CGPA:</label>
+                 <input type="text" value={cgpa} onChange={(e) => setCgpa(e.target.value)} required />
+              </div>
+              <button type="submit">Submit</button>
+           </form>
+       </div>  
+    );
+};
+
+export default App;
+
+
+
+                        17.
+
+import React, { useState, useEffect } from "react";
+import { Line } from "react-chartjs-2";
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from "chart.js";
+
+// Register Chart.js components
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
+
+function App() {
+  const [weatherData, setWeatherData] = useState(null);
+  const [chartData, setChartData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  const apiKey = process.env.REACT_APP_OPENWEATHER_API_KEY;
+  const latitude = "17.2167";  // Ibrahimpatnam latitude
+  const longitude = "78.6333"; // Ibrahimpatnam longitude
+
+  useEffect(() => {
+    const fetchWeatherData = async () => {
+      try {
+        // Fetch current weather
+        const response = await fetch(
+          `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=${apiKey}&units=metric`
+        );
+        const currentWeather = await response.json();
+        setWeatherData(currentWeather);
+        
+        // For historical data, fetch 5-day forecast (OpenWeatherMap has a forecast API, not historical for free users)
+        const forecastResponse = await fetch(
+          `https://api.openweathermap.org/data/2.5/forecast?lat=${latitude}&lon=${longitude}&appid=${apiKey}&units=metric`
+        );
+        const forecastData = await forecastResponse.json();
+        
+        // Extract temperatures and timestamps for the graph
+        const temperatures = forecastData.list.map(item => item.main.temp);
+        const timestamps = forecastData.list.map(item => new Date(item.dt * 1000).toLocaleTimeString());
+        
+        // Set chart data
+        setChartData({
+          labels: timestamps,
+          datasets: [
+            {
+              label: "Temperature (°C)",
+              data: temperatures,
+              fill: false,
+              borderColor: "rgba(75, 192, 192, 1)",
+              tension: 0.1,
+            },
+          ],
+        });
+
+        setLoading(false);
+      } catch (error) {
+        console.error("Error fetching weather data:", error);
+        setLoading(false);
+      }
+    };
+
+    fetchWeatherData();
+  }, [apiKey]);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  return (
+    <div>
+      <h1>Weather Information</h1>
+      {weatherData && (
+        <div>
+          <h2>Current Weather in Ibrahimpatnam</h2>
+          <p>Temperature: {weatherData.main.temp}°C</p>
+          <p>Humidity: {weatherData.main.humidity}%</p>
+          <p>Weather: {weatherData.weather[0].description}</p>
+        </div>
+      )}
+
+      {chartData && (
+        <div>
+          <h2>5-Day Weather Forecast (Temperature)</h2>
+          <Line data={chartData} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default App;
